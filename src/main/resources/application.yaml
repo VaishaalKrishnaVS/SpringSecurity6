@@ -2,7 +2,12 @@ server:
   port: 8080
 
 spring:
-  security:
-    user:
-      name: user
-      password: 1234
+  datasource:
+    url: jdbc:mysql://localhost:3306/bank
+    username: root
+    password: vs0000
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
