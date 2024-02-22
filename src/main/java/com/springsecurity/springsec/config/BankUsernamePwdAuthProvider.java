@@ -1,5 +1,6 @@
 package com.springsecurity.springsec.config;
 
+import com.springsecurity.springsec.model.Authority;
 import com.springsecurity.springsec.model.Customer;
 import com.springsecurity.springsec.repository.CustomerRepository;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class BankUsernamePwdAuthProvider implements AuthenticationProvider {
@@ -31,14 +33,19 @@ public class BankUsernamePwdAuthProvider implements AuthenticationProvider {
         String pwd = authentication.getCredentials().toString();
         List<Customer> customerList = customerRepository.findByEmail(username);
         if (!customerList.isEmpty()){
-            if(passwordEncoder.matches(pwd, customerList.get(0).getPwd())){
-                List<GrantedAuthority> authorities = new ArrayList<>();
-                authorities.add(new SimpleGrantedAuthority(customerList.get(0).getRole()));
-                return new UsernamePasswordAuthenticationToken(username,pwd,authorities);
-            }
+            if(passwordEncoder.matches(pwd, customerList.get(0).getPwd()))
+                return new UsernamePasswordAuthenticationToken(username, pwd, getGrantedAuthorities(customerList.get(0).getAuthorities()));
             else throw new BadCredentialsException("Invalid Password");
         }
         else throw new BadCredentialsException("No user found");
+    }
+
+    private List<GrantedAuthority> getGrantedAuthorities(Set<Authority> authorities) {
+        List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
+        for (Authority authority : authorities) {
+            grantedAuthorities.add(new SimpleGrantedAuthority(authority.getName()));
+        }
+        return grantedAuthorities;
     }
 
     @Override
